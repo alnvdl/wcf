@@ -2,11 +2,11 @@
 
 You know when you want to write a very simple web application for a small team
 of people, but then you give up when you think about all the effort that will
-be required just to have a minimally decent interface and database setup?
+be required just to have a minimally decent user interface and database setup?
 
 WebCLIFramework (WCF) is a minimalist framework for those cases. It allows you
 to build command line applications that run in the browser, without having to
-worry about interfaces, database integration or dependency management.
+worry about user interfaces, database integration or dependency management.
 
 It provides you:
 - a simulated **terminal**
