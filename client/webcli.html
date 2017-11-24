@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style media="screen">
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+        }
+
+        .defaultStyle {
+            color: #ccc;
+            background-color: #000;
+            font-family: monospace;
+            font-size: 16px;
+            line-height: 24px;
+        }
+
+        #terminal {
+            box-sizing: border-box;
+            height: 100%;
+            width: 100%;
+            overflow: auto;
+            padding: 4px;
+        }
+
+        pre {
+            margin: 0;
+            display: inline;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        }
+
+        #readline {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+        }
+
+        #prompt {
+            flex-shrink: 1;
+            margin-right: 8px;
+        }
+
+        #input {
+            flex-grow: 1;
+            line-height: 24px;
+            border: none;
+            margin-top: -1px;
+            margin-left: 1px;
+        }
+
+        .command {
+            font-weight: bold;
+        }
+
+        .success {
+            color: #4E9A06;
+        }
+
+        .error {
+            color: #CC0000;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="defaultStyle" id="terminal">
+            <pre id="lines"></pre>
+            <div id="readline">
+                <div id="prompt" class="command"></div>
+                <input id="input" class="defaultStyle command" type="text" id="input" />
+            </div>
+        </div>
+
+        <script type="text/javascript">
+        function error(msg) {
+            return {
+                response: {error: 1, message: msg, value: null},
+                cdata: null
+            }
+        }
+        async function sendCommand(cdata, cmd) {
+            var rsp = await fetch("/commands", {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8"
+                },
+                body: JSON.stringify({cdata: cdata, command: cmd})
+            });
+
+            if (rsp.status === 400) {
+                return error(`Server did not accept command request.`);
+            } else if (rsp.status === 500) {
+                return error(`Server ran into an error while processing this command.`);
+            } else if (rsp.status !== 200) {
+                return error(`Unexpected server error.`);
+            }
+
+            try {
+                var data = await rsp.json();
+            } catch (e) {
+                return error(`Malformed response from server.`);
+            }
+
+            return data;
+        }
+
+        const PROMPT = "# ";
+        var terminal = document.querySelector("#terminal");
+        var input = document.querySelector("#input");
+        var prompt = document.querySelector("#prompt");
+        prompt.innerHTML = PROMPT;
+        input.value = "";
+        var lines = document.querySelector("#lines");
+        var runningCommand = false;
+        var hist = [];
+        var histPos = 0;
+        var cdata;
+        try {
+            cdata = JSON.parse(window.localStorage.getItem("cdata"));
+            if (cdata === null) cdata = {};
+        } catch (e) {
+            cdata = {}
+        }
+
+        function addToHistory(cmd) {
+            hist.push(cmd);
+            histPos = 0;
+        }
+
+        function getPreviousFromHistory() {
+            histPos--;
+            if (histPos < -hist.length) histPos = -hist.length;
+            return hist[hist.length + histPos];
+        }
+
+        function getNextFromHistory() {
+            histPos++;
+            if (histPos > -1) histPos = -1;
+            return hist[hist.length + histPos];
+        }
+
+        function browseHistory(direction) {
+            let cmd = direction === "up"? getPreviousFromHistory() : getNextFromHistory();
+            if (cmd) input.value = cmd;
+        }
+
+        function formatResponseMessage(rsp) {
+            let lines = rsp.message.split("\n");
+            let first = lines.shift();
+            let rest = lines.join("\n");
+            if (rest) rest = "\n" + rest;
+            let cls = "success";
+            if (rsp.error) {
+                cls = "error";
+            }
+            return `<span class="${cls}">${first}</span>` + rest;
+        }
+
+        async function runCommand() {
+            runningCommand = true;
+
+            // Take value from input
+            let cmd = input.value;
+            input.value = "";
+
+            // Append line with command instruction and hide prompt
+            lines.innerHTML += `<span class="command">${PROMPT}${cmd}</span>\n`;
+            prompt.style.display = "none";
+
+            // Only run command if it's not empty
+            if (cmd.trim()) {
+                //  Send command and update lines and cdata after response
+                let serverResponse = await sendCommand(cdata, cmd.trim());
+                let response = serverResponse.response;
+
+                // Only update cdata if response is not an error
+                if (!response.error) {
+                    if (serverResponse.cdata) cdata = serverResponse.cdata;
+                    window.localStorage.setItem("cdata", JSON.stringify(cdata));
+                }
+
+                if (response.message) {
+                    let msg;
+                    if (cdata.terminal && cdata.terminal.color) {
+                        msg = formatResponseMessage(response);
+                    } else {
+                        msg = response.message;
+                    }
+                    lines.innerHTML += msg + "\n";
+                }
+                if (cdata.terminal && cdata.terminal.clear) {
+                    delete cdata.terminal.clear;
+                    lines.innerHTML = "";
+                }
+
+                // Add command to history
+                addToHistory(cmd);
+            }
+
+            // Force scroll to bottom and show prompt again
+            terminal.scrollTop = terminal.scrollHeight;
+            prompt.style.display = "";
+            runningCommand = false;
+        }
+
+        // Force all key strokes to go to input
+        document.addEventListener("keydown", (event) => {
+            input.focus();
+        })
+
+        document.addEventListener("keyup", async function (event) {
+            // Ignore key strokes when running commands
+            if (runningCommand) return;
+            if (event.key === "Enter") {
+                await runCommand();
+            }
+            else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                browseHistory(event.key === "ArrowUp"? "up" : "down");
+            }
+        })
+        </script>
+    </body>
+</html>
