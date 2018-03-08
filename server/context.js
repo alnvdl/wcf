@@ -61,8 +61,34 @@ class Context {
         return this.db.set(this.ns, key, value);
     }
 
+    tokenizeCommand(cmd) {
+        // This is a lot more verbose than a regex that'd do almost the same, but
+        // we get more readable code and more control, which means it's easier to
+        // improve and add features (for example, escaping)
+        let q = [], s = "";
+        let quoted = false, escape = false;
+        for (let i = 0; i < cmd.length; i++) {
+            let c = cmd[i];
+            if (c === " " && !quoted) {
+                if(s) q.push(s);
+                s = ""
+            } else if (c === "\"" && !escape) {
+                if (s || quoted) q.push(s);
+                s = "";
+                quoted = !quoted;
+            } else if (c === "\\") {
+                escape = true;
+            } else {
+                s += c;
+                escape = false;
+            }
+        }
+        if (s) q.push(s)
+        return q;
+    }
+
     async runCommand(cmd) {
-        let parts = cmd.split(" ");
+        let parts = this.tokenizeCommand(cmd);
         let appName = parts[0];
         if (!this.registry.applicationExists(appName)) {
             return new ErrorResponse(`Application not found: ${appName}`, appName);
