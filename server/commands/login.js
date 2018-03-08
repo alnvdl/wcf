@@ -1,24 +1,24 @@
-const {Command, Response, ErrorResponse} = require("../command");
+const {Application, Response, ErrorResponse} = require("../application");
 
-class LoginCommand extends Command {
+class Login extends Application {
     constructor() {
         super("login", "User account management");
-        this.registerSubCommand("",
+        this.registerCommand("",
             this.whoami,
             "Print the username of who is currently logged in");
         // FIXME: ordering is important here (because otherwise it
         // would check if user bye exists). It shouldn't be order
         // dependent, and literal matches should have precedence.
-        this.registerSubCommand("bye",
+        this.registerCommand("bye",
             this.logout,
             "Log out")
-        this.registerSubCommand("[username]",
+        this.registerCommand("[username]",
             this.isthere,
             "Verify if user [username] exists")
-        this.registerSubCommand("[username] [password]",
+        this.registerCommand("[username] [password]",
             this.dologin,
             "Attempt to login with [username] and [password]")
-        this.registerSubCommand("change password to [newPassword]",
+        this.registerCommand("change password to [newPassword]",
             this.changepassword,
             "Change the user password to [newPassword]")
     }
@@ -125,5 +125,5 @@ var LoginUtils = {
     }
 }
 
-LoginCommand.Utils = LoginUtils;
-module.exports.LoginCommand = LoginCommand;
+Login.Utils = LoginUtils;
+module.exports.Login = Login;

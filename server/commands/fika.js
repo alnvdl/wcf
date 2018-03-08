@@ -1,37 +1,37 @@
-const {Command, Response, ErrorResponse} = require("../command");
-const {LoginCommand} = require("./login");
+const {Application, Response, ErrorResponse} = require("../application");
+const {Login} = require("./login");
 
-class FikaCommand extends Command {
+class Fika extends Application {
     constructor() {
         super("fika", "Serious business fika management");
-        this.registerSubCommand("start",
+        this.registerCommand("start",
             this.start,
             "Start a fika session hosted by you");
-        this.registerSubCommand("end",
+        this.registerCommand("end",
             this.end,
             "End a fika session being hosted by you");
-        this.registerSubCommand("status",
+        this.registerCommand("status",
             this.status,
             "Show the status of all current fika sessions");
-        this.registerSubCommand("join",
+        this.registerCommand("join",
             this.status,
             "Show currently open fika sessions");
-        this.registerSubCommand("join [who]",
+        this.registerCommand("join [who]",
             this.join,
             "Join a fika session being hosted by someone ([who])");
-        this.registerSubCommand("leave",
+        this.registerCommand("leave",
             this.leave_list,
             "Show fika sessions you're currently participating in");
-        this.registerSubCommand("leave [who]",
+        this.registerCommand("leave [who]",
             this.leave,
             "Leave a fika session being hosted by someone ([who])");
-        this.registerSubCommand("next",
+        this.registerCommand("next",
             this.next,
             "Show who is responsible for the next fika");
-        this.registerSubCommand("history",
+        this.registerCommand("history",
             this.history,
             "Show all previous fika sessions");
-        this.registerSubCommand("balances",
+        this.registerCommand("balances",
             this.balances,
             "Shows the balances of all users");
 
@@ -74,8 +74,8 @@ class FikaCommand extends Command {
     }
 
     async start(ctx) {
-        let user = await this.getCommandUtils("login").getLoggedInUser(ctx)
-        if (!user) return this.getCommandUtils("login").notLoggedIn();
+        let user = await this.getApplicationUtils("login").getLoggedInUser(ctx)
+        if (!user) return this.getApplicationUtils("login").notLoggedIn();
 
         var sessions = await ctx.getData("sessions", {});
         if (user in sessions) {
@@ -92,8 +92,8 @@ class FikaCommand extends Command {
     }
 
     async leave_list(ctx) {
-        let user = await this.getCommandUtils("login").getLoggedInUser(ctx);
-        if (!user) return this.getCommandUtils("login").notLoggedIn();
+        let user = await this.getApplicationUtils("login").getLoggedInUser(ctx);
+        if (!user) return this.getApplicationUtils("login").notLoggedIn();
 
         var sessions = await ctx.getData("sessions", {});
 
@@ -114,10 +114,10 @@ class FikaCommand extends Command {
     }
 
     async join(ctx, who) {
-        let user = await this.getCommandUtils("login").getLoggedInUser(ctx);
-        if (!user) return this.getCommandUtils("login").notLoggedIn();
-        let host = await this.getCommandUtils("login").getUser(ctx, who);
-        if (!host) return this.getCommandUtils("login").userDoesNotExit();
+        let user = await this.getApplicationUtils("login").getLoggedInUser(ctx);
+        if (!user) return this.getApplicationUtils("login").notLoggedIn();
+        let host = await this.getApplicationUtils("login").getUser(ctx, who);
+        if (!host) return this.getApplicationUtils("login").userDoesNotExit();
 
         if (user === host) {
             return new ErrorResponse(`You cannot join your own fika session`);
@@ -137,10 +137,10 @@ class FikaCommand extends Command {
     }
 
     async leave(ctx, who) {
-        let user = await this.getCommandUtils("login").getLoggedInUser(ctx);
-        if (!user) return this.getCommandUtils("login").notLoggedIn();
-        let host = await this.getCommandUtils("login").getUser(ctx, who);
-        if (!host) return this.getCommandUtils("login").userDoesNotExit();
+        let user = await this.getApplicationUtils("login").getLoggedInUser(ctx);
+        if (!user) return this.getApplicationUtils("login").notLoggedIn();
+        let host = await this.getApplicationUtils("login").getUser(ctx, who);
+        if (!host) return this.getApplicationUtils("login").userDoesNotExit();
 
         if (user === host) {
             return new ErrorResponse(`You cannot leave your own fika session, end it instead`);
@@ -160,8 +160,8 @@ class FikaCommand extends Command {
     }
 
     async end(ctx) {
-        let user = await this.getCommandUtils("login").getLoggedInUser(ctx);
-        if (!user) return this.getCommandUtils("login").notLoggedIn();
+        let user = await this.getApplicationUtils("login").getLoggedInUser(ctx);
+        if (!user) return this.getApplicationUtils("login").notLoggedIn();
 
         var sessions = await ctx.getData("sessions", {});
         var session = sessions[user];
@@ -268,4 +268,4 @@ class FikaCommand extends Command {
     }
 }
 
-module.exports.FikaCommand = FikaCommand;
+module.exports.Fika = Fika;

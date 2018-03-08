@@ -1,12 +1,12 @@
-const {Command, Response, ErrorResponse} = require("../command");
+const {Application, Response, ErrorResponse} = require("../application");
 
-class ClientDataCommand extends Command {
+class ClientData extends Application {
     constructor() {
         super("cdata", "Manage client data");
-        this.registerSubCommand("",
+        this.registerCommand("",
             this.show,
             "Show client data");
-        this.registerSubCommand("clear",
+        this.registerCommand("clear",
             this.clear,
             "Clear all client data");
     }
@@ -21,4 +21,4 @@ class ClientDataCommand extends Command {
     }
 }
 
-module.exports.ClientDataCommand = ClientDataCommand;
+module.exports.ClientData = ClientData;

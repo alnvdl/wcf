@@ -1,9 +1,9 @@
-const {Command, Response, ErrorResponse} = require("../command");
+const {Application, Response, ErrorResponse} = require("../application");
 
-class SleepCommand extends Command {
+class Sleep extends Application {
     constructor() {
         super("sleep", "Just sleep");
-        this.registerSubCommand("[sec]",
+        this.registerCommand("[sec]",
             this.sleep,
             "Sleep for [sec] seconds.");
     }
@@ -20,4 +20,4 @@ class SleepCommand extends Command {
     }
 }
 
-module.exports.SleepCommand = SleepCommand;
+module.exports.Sleep = Sleep;

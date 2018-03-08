@@ -1,15 +1,15 @@
-const {Command, Response, ErrorResponse} = require("../command");
+const {Application, Response, ErrorResponse} = require("../application");
 
-class TerminalCommand extends Command {
+class Terminal extends Application {
     constructor() {
         super("terminal", "Terminal settings and actions");
-        this.registerSubCommand("clear",
+        this.registerCommand("clear",
             this.clear,
             "Clear the terminal");
-        this.registerSubCommand("color enable",
+        this.registerCommand("color enable",
             this.enable,
             "Enable colors in command output");
-        this.registerSubCommand("color disable",
+        this.registerCommand("color disable",
             this.disable,
             "Disable colors in command output");
     }
@@ -30,4 +30,4 @@ class TerminalCommand extends Command {
     }
 }
 
-module.exports.TerminalCommand = TerminalCommand;
+module.exports.Terminal = Terminal;

@@ -1,9 +1,9 @@
-const {Command, Response, ErrorResponse} = require("../command");
+const {Application, Response, ErrorResponse} = require("../application");
 
-class HelpCommand extends Command {
+class Help extends Application {
     constructor() {
         super("help", "Helping people help themselves");
-        this.registerSubCommand("",
+        this.registerCommand("",
             this.general_help,
             "Shows the list of all commands available");
     }
@@ -14,7 +14,7 @@ class HelpCommand extends Command {
         }
 
         var out = "Available commands:\n"
-        var allCommands = this.getRegistry().getAllCommands();
+        var allCommands = this.getRegistry().getAllApplications();
         Object.keys(allCommands).sort().forEach(cmdName => {
             let handler = allCommands[cmdName];
             out += `    ${cmdName}: ${handler.getDoc()}\n`
@@ -23,4 +23,4 @@ class HelpCommand extends Command {
     }
 }
 
-module.exports.HelpCommand = HelpCommand;
+module.exports.Help = Help;

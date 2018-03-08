@@ -1,23 +1,23 @@
-const {Command, Response, ErrorResponse} = require("../command");
-const {LoginCommand} = require("./login");
+const {Application, Response, ErrorResponse} = require("../application");
+const {Login} = require("./login");
 
-class EmailCommand extends Command {
+class Email extends Application {
     constructor() {
         super("email", "Email settings management");
-        this.registerSubCommand("set [address]",
+        this.registerCommand("set [address]",
             this.set,
             "Configure an email address for notifications");
-        this.registerSubCommand("unset",
+        this.registerCommand("unset",
             this.unset,
             "Unset a previously configured email address");
-        this.registerSubCommand("list [users]",
+        this.registerCommand("list [users]",
             this.list,
             "List email addresses for a comma-separated list of [users]");
     }
 
     async set(ctx, address) {
-        let user = await this.getCommandUtils("login").getLoggedInUser(ctx)
-        if (!user) return this.getCommandUtils("login").notLoggedIn();
+        let user = await this.getApplicationUtils("login").getLoggedInUser(ctx)
+        if (!user) return this.getApplicationUtils("login").notLoggedIn();
 
         let addresses = ctx.getData("addresses", {});
         // TODO: validate email addresses before setting
@@ -27,8 +27,8 @@ class EmailCommand extends Command {
     }
 
     async unset(ctx) {
-        let user = await this.getCommandUtils("login").getLoggedInUser(ctx)
-        if (!user) return this.getCommandUtils("login").notLoggedIn();
+        let user = await this.getApplicationUtils("login").getLoggedInUser(ctx)
+        if (!user) return this.getApplicationUtils("login").notLoggedIn();
 
         let addresses = ctx.getData("addresses", {});
         delete addresses[user];
@@ -37,8 +37,8 @@ class EmailCommand extends Command {
     }
 
     async list(ctx, users) {
-        let user = await this.getCommandUtils("login").getLoggedInUser(ctx)
-        if (!user) return this.getCommandUtils("login").notLoggedIn();
+        let user = await this.getApplicationUtils("login").getLoggedInUser(ctx)
+        if (!user) return this.getApplicationUtils("login").notLoggedIn();
 
         var addresses = await ctx.getData("addresses", {});
 
@@ -68,4 +68,4 @@ class EmailCommand extends Command {
     }
 }
 
-module.exports.EmailCommand = EmailCommand;
+module.exports.Email = Email;

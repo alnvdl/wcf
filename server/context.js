@@ -1,4 +1,4 @@
-const {Response, ErrorResponse} = require("./command");
+const {Response, ErrorResponse} = require("./application");
 
 class Context {
     constructor(registry, db, clientData) {
@@ -63,48 +63,47 @@ class Context {
 
     async runCommand(cmd) {
         let parts = cmd.split(" ");
-        let cmdName = parts[0];
-        if (!this.registry.commandExists(cmdName)) {
-            return new ErrorResponse(`Commmand not found: ${cmdName}`, cmdName);
+        let appName = parts[0];
+        if (!this.registry.applicationExists(appName)) {
+            return new ErrorResponse(`Application not found: ${appName}`, appName);
         }
 
-        // Check if a command is trying to run a subcommand that is
-        // itself. This is not allowed to avoid deadlocks. More on
-        // that in the comments below.
-        // Commands that need to call their own functionality
-        // should do it internally via function calls.
-        if (this.ns === cmdName) {
-            throw new Error(`Commands cannot call themselves (${cmdName} tried that)`);
+        // Check if an application is trying to run one of its own commands.
+        // This is not allowed to avoid deadlocks. More on that in the comments
+        // below.
+        // Commands that need to call their own functionality should do it
+        // internally via function calls.
+        if (this.ns === appName) {
+            throw new Error(`Applications cannot invoke themselves (${appName} tried that)`);
         }
 
         // Decide which context to use for running the command.
         //
-        // If this context was created outside this class and
-        // runCommand was called, use `this` as the context.
+        // If this context was created outside this class and runCommand was
+        // called, use `this` as the context.
         //
-        // If this context was created inside this class and
-        // runCommand was called from within another command, spawn
-        // a new context with its own namespace.
-        var ctxToUse = this;
+        // If this context was created inside this class (i.e.: we already have
+        // a namespace set), it means runCommand was called from within another
+        // command, so we should spawn a new context with its own namespace.
+        var cmdCtx = this;
         if (this.ns) {
-            ctxToUse = new Context(this.registry, this.db, this.clientData);
+            cmdCtx = new Context(this.registry, this.db, this.clientData);
         }
-        ctxToUse.ns = cmdName;
+        cmdCtx.ns = appName;
 
-        let args = parts.slice(1);
-        let handler = this.registry.getCommandHandler(cmdName);
+        let app = this.registry.getApplication(appName);
+        cmd = parts.slice(1);
 
         // Only one command of a type can run at once.
-        // This is a simple (and perhaps overly excessive) measure
-        // to make sure database operations are isolated.
+        // This is a simple (and perhaps overly excessive) measure to make sure
+        // database operations are isolated.
         //
-        // Because of this, commands should return fast. If a
-        // command must perform long operations, it should run them
-        // asynchronously and return a token for retrieving the
-        // result later on.
-        await ctxToUse._lockNamespace();
+        // Because of this, commands should return fast. If a command must
+        // perform long operations, it should run them asynchronously and
+        // return a token for retrieving the result later on.
+        await cmdCtx._lockNamespace();
         try {
-            var rsp = await handler.run(ctxToUse, args);
+            var rsp = await app.run(cmdCtx, cmd);
         } catch (e) {
             let msg = "Details: "
             if (e && e.message) {
@@ -115,9 +114,9 @@ class Context {
                 msg = "";
             }
             if ("Stack: ", console.log(e.stack));
-            rsp = new ErrorResponse(`Error running command: ${cmdName}\n${msg}`.trim(), cmdName);
+            rsp = new ErrorResponse(`Error running command: ${appName}\n${msg}`.trim(), appName);
         } finally {
-            await ctxToUse._unlockNamespace();
+            await cmdCtx._unlockNamespace();
         }
         if (rsp === undefined) {
             rsp = new Response();

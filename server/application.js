@@ -17,12 +17,12 @@ module.exports.ErrorResponse = ErrorResponse;
 
 COMMAND_TIMEOUT = 60 * 1000; // 60 seconds
 
-class Command {
+class Application {
     constructor(name, doc = "") {
-        if (!name) throw new Error("Command must have a name");
+        if (!name) throw new Error("Application must have a name");
         this.name = name;
         this.doc = doc;
-        this.subcommands = {
+        this.commands = {
             "help": {handler: this.help, doc: ""}
         }
         this._registry = null;
@@ -38,22 +38,22 @@ class Command {
         return str.match(/\[(.*?)\]/) !== null
     }
 
-    _match_and_extract(subcmd, args) {
-        var subcmd_parts = (subcmd === "")? [] : subcmd.split(" ");
-        if (subcmd_parts.length != args.length) {
-            return {match: false, subcmd: subcmd, args: []};
+    _match_and_extract(cmd, args) {
+        var cmd_parts = (cmd === "")? [] : cmd.split(" ");
+        if (cmd_parts.length != args.length) {
+            return {match: false, cmd: cmd, args: []};
         }
         var actual_args = [];
         for (var i = 0; i < args.length; i++) {
             var arg = args[i];
-            var expected = subcmd_parts[i];
+            var expected = cmd_parts[i];
             if (this._isParameter(expected)) {
                 actual_args.push(arg);
             } else if (arg != expected) {
-                return {match: false, subcmd: subcmd, args: []};
+                return {match: false, cmd: cmd, args: []};
             }
         }
-        return {match: true, subcmd: subcmd, args: actual_args};
+        return {match: true, cmd: cmd, args: actual_args};
     }
 
     getRegistry() {
@@ -72,18 +72,18 @@ class Command {
         return this.doc;
     }
 
-    registerSubCommand(syntax, handler, doc="") {
+    registerCommand(syntax, handler, doc="") {
         if (syntax == "help") {
             throw new Error("'help' subcommand is reserved")
         }
-        this.subcommands[syntax] = {handler, doc}
+        this.commands[syntax] = {handler, doc}
     }
 
-    getCommandUtils(cmdName) {
+    getApplicationUtils(appName) {
         if (this._registry === null) {
-            throw new Error("This command is not yet registed with a registry")
+            throw new Error("This application is not yet registed with a registry")
         }
-        return this._registry.getCommandUtils(cmdName);
+        return this._registry.getApplicationUtils(appName);
     }
 
     async help(ctx, params_only = false) {
@@ -92,25 +92,25 @@ class Command {
             str += `${this.name}: ${this.doc}\n`;
             str += `Possible variations:\n`
         }
-        Object.keys(this.subcommands).forEach(subcmd => {
-            if (subcmd === "help") return;
-            let subcmddoc = this.subcommands[subcmd].doc;
-            if (subcmd) subcmd = " " + subcmd;
-            str += `    ${this.name}${subcmd}: ${subcmddoc}\n`
+        Object.keys(this.commands).forEach(cmd => {
+            if (cmd === "help") return;
+            let cmddoc = this.commands[cmd].doc;
+            if (cmd) cmd = " " + cmd;
+            str += `    ${this.name}${cmd}: ${cmddoc}\n`
         });
         return new Response(str.replace(/\s+$/, ""));
     }
 
     async run(ctx, args) {
-        var subcmds = Object.keys(this.subcommands);
+        var cmds = Object.keys(this.commands);
         var cmdmatch;
-        for (var i = 0; i < subcmds.length; i++) {
-            cmdmatch = this._match_and_extract(subcmds[i], args);
+        for (var i = 0; i < cmds.length; i++) {
+            cmdmatch = this._match_and_extract(cmds[i], args);
             if (cmdmatch.match) break;
         }
 
         if (cmdmatch.match) {
-            var handler = this.subcommands[cmdmatch.subcmd].handler;
+            var handler = this.commands[cmdmatch.cmd].handler;
             if (!handler) {
                 return new ErrorResponse("Error executing command: could not find handler")
             }
@@ -124,50 +124,50 @@ class Command {
         }
     }
 }
-module.exports.Command = Command;
+module.exports.Application = Application;
 
-class CommandRegistry {
+class ApplicationRegistry {
     constructor() {
-        this.commands = {}
+        this.applications = {}
     }
 
-    getCommandHandler(cmdName) {
-        if (!this.commandExists(cmdName)) {
-            throw new Error("Command not registered: " + cmdName);
+    getApplication(appName) {
+        if (!this.applicationExists(appName)) {
+            throw new Error("Application not registered: " + appName);
         }
-        return this.commands[cmdName];
+        return this.applications[appName];
     }
 
-    registerCommand(handler) {
-        let cmdName = handler.getName();
-        if (handler.getRegistry() !== null) {
-            throw new Error("This command is already registered with another registry");
+    registerApplication(app) {
+        let appName = app.getName();
+        if (app.getRegistry() !== null) {
+            throw new Error("This application is already registered with another registry");
         }
-        if (this.commandExists(cmdName)) {
-            throw new Error("Command already registered: " + cmdName);
+        if (this.applicationExists(appName)) {
+            throw new Error("Application already registered: " + appName);
         }
-        handler.setRegistry(this);
-        this.commands[cmdName] = handler;
+        app.setRegistry(this);
+        this.applications[appName] = app;
     }
 
-    getCommandUtils(cmdName) {
-        if (!this.commands[cmdName]) {
-            throw new Error(`The command '${cmdName}' is not yet registed with this registry`);
+    getApplicationUtils(appName) {
+        if (!this.applications[appName]) {
+            throw new Error(`The application '${appName}' is not yet registed with this registry`);
         }
-        let utils = this.commands[cmdName].constructor.Utils;
+        let utils = this.applications[appName].constructor.Utils;
         if (!utils) {
-            throw new Error(`The command '${cmdName}' does not provide a utils facility`);
+            throw new Error(`The application '${appName}' does not provide a utils facility`);
         }
         return utils;
     }
 
-    commandExists(cmdName) {
-        return this.commands[cmdName] !== undefined;
+    applicationExists(appName) {
+        return this.applications[appName] !== undefined;
     }
 
-    getAllCommands() {
-        return this.commands;
+    getAllApplications() {
+        return this.applications;
     }
 
 }
-module.exports.CommandRegistry = CommandRegistry;
+module.exports.ApplicationRegistry = ApplicationRegistry;
