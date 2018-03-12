@@ -69,12 +69,12 @@ Every command always runs in the server, even the simplest ones. When commands
 are executed, they may choose to keep data on the server side (**database
 data**)  or on the client side (**client data**). Client data is typically used
 to store  temporary state and non-important data. Database data is typically
-used for storing more important data, and for sharing data between several
-clients.
+used to store more important data, and also for sharing data between clients.
 
-Whenever client data is set, it is always sent back to the server with every
-command you run, for all applications. An application can only read client data
-and database data belonging to its own namespace.
+Whenever client data is set (via a command's response), it is always sent back
+to the server with every command you run, for every application. However, an
+application can only read client data and database data belonging to its own
+namespace.
 
 Database data works the same way, but it's stored on the server side.
 Applications can only read their own data, and all data is persisted to the disk
@@ -83,7 +83,7 @@ is copied from/to the in-memory representation, to make sure applications don't
 accidentaly bypass the database read/write mechanism.
 
 Since an application cannot read client or database data belonging to another
-application, the only way for it to obtain information from another applications
+application, the only way for it to obtain information from another application
 is to run commands on behalf of the user. For example, if the `email`
 application needs to know the name of the user who's logged in, it can run the
 `login` command, which will return whether an user is logged in and what's their
@@ -114,7 +114,7 @@ Since everything is written in JavaScript and no memory isolation mechanisms
 were put in place, a malicious application could just take a walk anywhere it
 fancies. So be careful with your applications.
 
-### Code base
+## Code base
 The entire code base is really simple, so let's just describe what each file
 does:
 
@@ -133,7 +133,7 @@ applications and starting the server;
 - `applications.json`: general settings and the list of applications that should
   be loaded;
 
-#### Core applications
+### Core applications
 These are the 6 core applications:
 - **cdata**: manage client data
 - **email**: allows the configuration of email addresses
@@ -226,3 +226,16 @@ For more advanced examples, including commands that interact with other
 commands, please take a look at the core applications in `server/applications`.
 The fika application is a really good example which makes more extensive use of
 the framework.
+
+## ToDo
+
+- Add support to load applications installed via NPM (in `node_modules`)
+- Add WCF to NPM
+- A more intelligent command syntax parser: allow more types of arguments,
+verify if one command is obscuring another, etc
+- Allow easy database population, especially for the login command. Perhaps a
+  script? Or an automatically created admin with user creation powers?
+- Document application utils (basically, they are convenience functions that
+  an application knows others will likely want to use).
+
+Pull requests are welcome.
