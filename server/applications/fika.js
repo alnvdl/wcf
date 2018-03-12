@@ -268,4 +268,4 @@ class Fika extends Application {
     }
 }
 
-module.exports.Fika = Fika;
+module.exports = Fika;

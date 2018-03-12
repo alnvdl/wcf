@@ -68,4 +68,4 @@ class Email extends Application {
     }
 }
 
-module.exports.Email = Email;
+module.exports = Email;

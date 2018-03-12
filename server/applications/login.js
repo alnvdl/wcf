@@ -126,4 +126,4 @@ var LoginUtils = {
 }
 
 Login.Utils = LoginUtils;
-module.exports.Login = Login;
+module.exports = Login;

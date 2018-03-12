@@ -30,4 +30,4 @@ class Terminal extends Application {
     }
 }
 
-module.exports.Terminal = Terminal;
+module.exports = Terminal;

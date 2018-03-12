@@ -21,4 +21,4 @@ class ClientData extends Application {
     }
 }
 
-module.exports.ClientData = ClientData;
+module.exports = ClientData;

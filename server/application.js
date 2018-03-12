@@ -40,14 +40,19 @@ class Application {
 
     _match_and_extract(cmd, args) {
         var cmd_parts = (cmd === "")? [] : cmd.split(" ");
-        if (cmd_parts.length != args.length) {
+        if (cmd_parts[cmd_parts.length - 1] !== "[...]" &&
+            cmd_parts.length != args.length) {
             return {match: false, cmd: cmd, args: []};
         }
         var actual_args = [];
         for (var i = 0; i < args.length; i++) {
             var arg = args[i];
             var expected = cmd_parts[i];
-            if (this._isParameter(expected)) {
+            if (expected === "[...]") {
+                actual_args.push(args.slice(i));
+                break;
+            }
+            else if (this._isParameter(expected)) {
                 actual_args.push(arg);
             } else if (arg != expected) {
                 return {match: false, cmd: cmd, args: []};

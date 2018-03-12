@@ -20,4 +20,4 @@ class Sleep extends Application {
     }
 }
 
-module.exports.Sleep = Sleep;
+module.exports = Sleep;

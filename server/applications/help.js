@@ -23,4 +23,4 @@ class Help extends Application {
     }
 }
 
-module.exports.Help = Help;
+module.exports = Help;
