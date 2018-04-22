@@ -1,6 +1,6 @@
-const {Application, Response, ErrorResponse} = require("../application");
+module.exports = function (Application) {
 
-class Terminal extends Application {
+return class Terminal extends Application {
     constructor() {
         super("terminal", "Terminal settings and actions");
         this.registerCommand("clear",
@@ -16,18 +16,18 @@ class Terminal extends Application {
 
     async clear(ctx) {
         ctx.setClientData("clear", true);
-        return new Response("");
+        return new Application.Response("");
     }
 
     async enable(ctx) {
         ctx.setClientData("color", true);
-        return new Response("Color output enabled.")
+        return new Application.Response("Color output enabled.")
     }
 
     async disable(ctx) {
         ctx.setClientData("color", false);
-        return new Response("Color output disabled.")
+        return new Application.Response("Color output disabled.")
     }
 }
 
-module.exports = Terminal;
+}

@@ -1,4 +1,4 @@
-const {Application, Response, ErrorResponse} = require("../application");
+module.exports = function (Application) {
 
 class Login extends Application {
     constructor() {
@@ -29,12 +29,12 @@ class Login extends Application {
 
         var credentials = await ctx.getData("credentials", {});
         if (username && password && credentials[username] === password) {
-            return new Response(`Logged in as '${username}'`, username)
+            return new Application.Response(`Logged in as '${username}'`, username)
         } else {
             if (username === undefined) {
-                return new ErrorResponse(`Not logged in.`);
+                return new Application.ErrorResponse(`Not logged in.`);
             }
-            return new ErrorResponse(`Not logged in.\nAttempted ` +
+            return new Application.ErrorResponse(`Not logged in.\nAttempted ` +
             `login with username '${username}', but it does not ` +
             `exist or password is wrong`)
         }
@@ -43,9 +43,9 @@ class Login extends Application {
     async isthere(ctx, username) {
         var credentials = await ctx.getData("credentials", {});
         if (credentials[username] !== undefined) {
-            return new Response(`Username '${username}' exists.`, username);
+            return new Application.Response(`Username '${username}' exists.`, username);
         } else {
-            return new ErrorResponse(`Username '${username}' does not exist.`);
+            return new Application.ErrorResponse(`Username '${username}' does not exist.`);
         }
     }
 
@@ -54,9 +54,9 @@ class Login extends Application {
         if (credentials[username] === password) {
             ctx.setClientData("username", username);
             ctx.setClientData("password", password);
-            return new Response(`Logged in as '${username}'`, username)
+            return new Application.Response(`Logged in as '${username}'`, username)
         } else {
-            return new ErrorResponse(`Login failed.\nAttempted ` +
+            return new Application.ErrorResponse(`Login failed.\nAttempted ` +
             `login with username '${username}', but it does not ` +
             `exist or password is wrong.`)
         }
@@ -67,11 +67,11 @@ class Login extends Application {
         var currentPassword = ctx.getClientData("password");
 
         if (newPassword.length < 10) {
-            return new ErrorResponse(`Password must be at least 10 characters long.`);
+            return new Application.ErrorResponse(`Password must be at least 10 characters long.`);
         }
 
         if (username === undefined) {
-            return new ErrorResponse(`Not logged in.`);
+            return new Application.ErrorResponse(`Not logged in.`);
         }
 
         var credentials = await ctx.getData("credentials", {});
@@ -81,10 +81,10 @@ class Login extends Application {
             // Logout the user after the password is changed
             ctx.deleteClientData("username");
             ctx.deleteClientData("password");
-            return new Response("Password succesfully changed.\n" +
+            return new Application.Response("Password succesfully changed.\n" +
                 "You have been logged out, please login with your new password.", username)
         } else {
-            return new ErrorResponse(`Login failed.\nAttempted ` +
+            return new Application.ErrorResponse(`Login failed.\nAttempted ` +
             `login with username '${username}', but it does not ` +
             `exist or password is wrong.`)
         }
@@ -98,9 +98,9 @@ class Login extends Application {
         if (username && credentials[username] === password) {
             ctx.deleteClientData("username");
             ctx.deleteClientData("password");
-            return new Response(`Logged out!`);
+            return new Application.Response(`Logged out!`);
         } else {
-            return new ErrorResponse(`Not logged in.`);
+            return new Application.ErrorResponse(`Not logged in.`);
         }
     }
 }
@@ -117,13 +117,16 @@ var LoginUtils = {
     },
 
     userDoesNotExit: function() {
-        return new ErrorResponse("The user you referred to does not exist.")
+        return new Application.ErrorResponse("The user you referred to does not exist.")
     },
 
     notLoggedIn: function() {
-        return new ErrorResponse("Please login first.")
+        return new Application.ErrorResponse("Please login first.")
     }
 }
 
 Login.Utils = LoginUtils;
-module.exports = Login;
+
+return Login;
+
+}

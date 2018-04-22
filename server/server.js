@@ -1,3 +1,4 @@
+const fs = require("fs");
 const http = require("http");
 
 const {Context} = require("./context");
@@ -46,7 +47,9 @@ class Server {
         this.db = db;
         this.address = address;
         this.port = port;
-        this.page = page;
+        this.page = fs.readFileSync(require.resolve("../client/webcli.html"), {
+            encoding: "utf-8"
+        });
     }
 
     start() {

@@ -1,6 +1,6 @@
-const {Application, Response, ErrorResponse} = require("../application");
+module.exports = function (Application) {
 
-class Help extends Application {
+return class Help extends Application {
     constructor() {
         super("help", "Helping people help themselves");
         this.registerCommand("",
@@ -10,7 +10,7 @@ class Help extends Application {
 
     async general_help(ctx) {
         if (!this.getRegistry()) {
-            return new ErrorResponse("Help command not registed with a registry");
+            return new Application.ErrorResponse("Help command not registed with a registry");
         }
 
         var out = "Available commands:\n"
@@ -19,8 +19,8 @@ class Help extends Application {
             let handler = allCommands[cmdName];
             out += `    ${cmdName}: ${handler.getDoc()}\n`
         });
-        return new Response(out.trim());
+        return new Application.Response(out.trim());
     }
 }
 
-module.exports = Help;
+}

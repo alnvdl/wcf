@@ -1,6 +1,6 @@
-const {Application, Response, ErrorResponse} = require("../application");
+module.exports = function (Application) {
 
-class Sleep extends Application {
+return class Sleep extends Application {
     constructor() {
         super("sleep", "Just sleep");
         this.registerCommand("[sec]",
@@ -16,8 +16,8 @@ class Sleep extends Application {
 
     async sleep(ctx, sec) {
         await this.do_sleep(sec);
-        return new Response("");
+        return new Application.Response("");
     }
 }
 
-module.exports = Sleep;
+}

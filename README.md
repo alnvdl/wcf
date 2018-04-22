@@ -1,19 +1,20 @@
 # WebCLIFramework
 
-You know that feeling when you want to write a very simple web application for a
-small team of people, but then you give up when you think about all the effort
-that will be required just to have a minimally decent user interface and
-database setup?
+WebCLIFramework is a minimalist web-based CLI framework.
+
+Do you sometimes want to build a very simple web application for a small team
+of people, but then give up just thinking about all the effort that will be
+required to have a minimally decent user interface and a database setup?
 
 WebCLIFramework (WCF) is a minimalist framework for those cases. It allows you
-to build command line applications that run in the browser, without having to
-worry about user interfaces, database integration or dependency management.
+to build command line applications for browsers, without having to worry about
+user interfaces, database integration or dependency management.
 
 It provides you with:
-- a simulated **terminal**
-- a very easy-to-use **framework** for writing the applications
-- a **web server** for providing this terminal and for running applications
+- a simulated **terminal** with a command line interface for applications
+- a very easy-to-use **framework** for writing applications
 - a really stupid JSON-based **database**
+- a **web server** to deliver it all
 
 It does **not** provide you:
 - any performance guarantees (we trade performance for ease of development)
@@ -36,10 +37,12 @@ That's it. No installation, no database configuration, no nothing. Just point
 your browser to [http://localhost:8080](http://localhost:8080) and enjoy. You
 can start by running `help`.
 
-You can find some example applications in `server/applications`. The most
-interesting application right now is a
-[fika](https://en.wikipedia.org/wiki/Fika_%28Sweden%29) management application,
-which is the main reason WCF was written in the first place.
+You can find some sample applications in the `applications` directory. The
+most interesting application right now is outside this repository. It
+is a [fika](https://en.wikipedia.org/wiki/Fika_%28Sweden%29) management
+application, which is the main reason WCF was written in the first place. You
+can see the code (and further instructions) for this application in its
+[repository](https://github.com/alnvdl/wcf_fika).
 
 Some commands may run just fine without logging in, but others may require you
 to login. For that, create (or edit) the file `db.json` in the project root:
@@ -54,9 +57,9 @@ to login. For that, create (or edit) the file `db.json` in the project root:
 }
 ```
 
-Restart the server and you will be able to login with different users and try
-applications that require logging in. In the future, there will be commands for
-populating the login database.
+Restart the server and you will be able to login with different users (e.g.:
+`login user1 mypassword`) and try applications that require logging in. In the
+future, there will be better ways to populate the login database.
 
 ## Core concepts
 
@@ -67,7 +70,7 @@ user to specify a number of seconds to wait.
 
 Every command always runs in the server, even the simplest ones. When commands
 are executed, they may choose to keep data on the server side (**database
-data**)  or on the client side (**client data**). Client data is typically used
+data**) or on the client side (**client data**). Client data is typically used
 to store  temporary state and non-important data. Database data is typically
 used to store more important data, and also for sharing data between clients.
 
@@ -106,7 +109,7 @@ spawn a new execution `Context` for that command, with proper permissions.
 
 For example, the `email` application allows one to register their email address
 in the database, but only if they are logged in. For that, it needs to ask the
-`login` command if that user is logged in -- and the `login` command must
+`login` command if that user is logged in and the `login` command must
 provide a suitable command for that task. The `email` command never gets
 access to `login` data. The main reason for this is not really security but
 really for isolation, to prevent nasty bugs from inter-command interactions.
@@ -126,17 +129,17 @@ execution;
 actually be too much of a compliment);
 - `server/server.js`: a frameworkless HTTP server for receiving command requests and
 serving our static page;
-- `server/applications/*`: the core applications;
+- `applications/*`: the core applications;
 - `client/webcli.html`: a simulated (not emulated!) terminal;
 - `main.js`: ties everything together by creating a database, registering
 applications and starting the server;
-- `applications.json`: general settings and the list of applications that should
-  be loaded;
+- `config.json`: general settings and the list of applications that should be
+  loaded.
 
 ### Core applications
 These are the 6 core applications:
-- **cdata**: manage client data
-- **email**: allows the configuration of email addresses
+- **cdata**: manage client data (used for development purposes)
+- **email**: email address management
 - **help**: show system-wide help
 - **login**: manages user accounts
 - **sleep**: just sleeps
@@ -151,37 +154,37 @@ Let's go through the echo application, that simply echoes back whatever the
 user says.
 
 ```js
-const {Application, Response, ErrorResponse} = require("../application");
+module.exports = function (Application) {
 
-class Echo extends Application {
+return class Echo extends Application {
     constructor() {
-        super("echo", "Echoes back things");
+        super("echo", "Echoes things back");
         this.registerCommand("[...]",
             this.doEcho,
             "Echoes back whatever the user says");
     }
 
     async doEcho(ctx, args) {
-        return new Response(args.join(" "));
+        return new Application.Response(args.join(" "));
     }
-
 }
 
-module.exports.Echo = Echo;
+}
 ```
 
-We begin by importing all relevant classes from `server/application.js`. The
-basic set is comprised by the `Application` base class, and the `Response` and
-`ErrorResponse` classes for sending back command responses. For both of these
-response classes, you need at least the first argument to their constructor,
-which will provide textual feedback to the user.
+A module representing an application must always export a factory: a function
+that will receive the `Application` class from the framework, and use that to
+create a new application inheriting from it.
 
-In addition to that, you can also provide a JavaScript object to be consumed by
-other applications. For example, the login application responds with a
-human-readable message and a string with the name of the user who's logged in
-(if that's the case). The human-readable message will be shown in the simulated
-terminal, and the string will be used by other applications that may need to
-verify who's logged in.
+The Application class also contain two nested classes: `Response` and
+`ErrorResponse`, used to send back command responses. For both of these response
+classes, you need at least the first argument to their constructor, which will
+provide textual feedback to the user. The second argument can be  used to
+provide a JavaScript object to be consumed by other applications. For example,
+the login application responds with a human-readable message and a string with
+the name of the user who's logged in (if that's the case). The human-readable
+message will be shown in the simulated terminal, and the string will be used by
+other applications that may need to verify who's logged in.
 
 You must then create a class for your application. This class must call `super`
 with the application command-line name and a description of what the application
@@ -224,18 +227,28 @@ To wrap it all up, make sure to export your application class.
 
 For more advanced examples, including commands that interact with other
 commands, please take a look at the core applications in `server/applications`.
-The fika application is a really good example which makes more extensive use of
-the framework.
+The [fika application](https://github.com/alnvdl/wcf_fika) is a really good 
+example which makes more extensive use of the framework.
+
+## Loading applications
+To load your application into the framework, edit the `apps` array in
+`config.json` and restart the server.
+
+Provide the import path as you would for any NodeJS module: if it's a core
+application, use a relative path (`./applications/login`); if it's an external
+application installed via NPM, use an regular import path (`wcf_fika/fika`).
 
 ## ToDo
 
-- Add support to load applications installed via NPM (in `node_modules`)
-- Add WCF to NPM
+- Command completion
+- Primitive text formatting (colors, bold, etc)
+- Terminal themes and further customizability
 - A more intelligent command syntax parser: allow more types of arguments,
 verify if one command is obscuring another, etc
 - Allow easy database population, especially for the login command. Perhaps a
   script? Or an automatically created admin with user creation powers?
 - Document application utils (basically, they are convenience functions that
-  an application knows others will likely want to use).
+  an application knows other applications will likely want to use to avoid
+  code duplication, but don't quite qualify as commands).
 
 Pull requests are welcome.

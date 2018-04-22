@@ -1,6 +1,6 @@
-const {Application, Response, ErrorResponse} = require("../application");
+module.exports = function (Application) {
 
-class ClientData extends Application {
+return class ClientData extends Application {
     constructor() {
         super("cdata", "Manage client data");
         this.registerCommand("",
@@ -12,13 +12,13 @@ class ClientData extends Application {
     }
 
     async show(ctx) {
-        return new Response(JSON.stringify(ctx.getAllClientData()), ctx.getAllClientData());
+        return new Application.Response(JSON.stringify(ctx.getAllClientData()), ctx.getAllClientData());
     }
 
     async clear(ctx) {
         ctx.deleteAllClientData();
-        return new Response("Client data succesfully cleared.")
+        return new Application.Response("Client data succesfully cleared.")
     }
 }
 
-module.exports = ClientData;
+}

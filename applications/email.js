@@ -1,7 +1,6 @@
-const {Application, Response, ErrorResponse} = require("../application");
-const {Login} = require("./login");
+module.exports = function (Application) {
 
-class Email extends Application {
+return class Email extends Application {
     constructor() {
         super("email", "Email settings management");
         this.registerCommand("set [address]",
@@ -23,7 +22,7 @@ class Email extends Application {
         // TODO: validate email addresses before setting
         addresses[user] = address;
         await ctx.setData("addresses", addresses);
-        return new Response(`Changed email address to '${address}'.`, address);
+        return new Application.Response(`Changed email address to '${address}'.`, address);
     }
 
     async unset(ctx) {
@@ -33,7 +32,7 @@ class Email extends Application {
         let addresses = ctx.getData("addresses", {});
         delete addresses[user];
         await ctx.setData("addresses", addresses);
-        return new Response(`Unset email address for user '${user}'.`, user);
+        return new Application.Response(`Unset email address for user '${user}'.`, user);
     }
 
     async list(ctx, users) {
@@ -64,8 +63,8 @@ class Email extends Application {
             out += "Unresolved email addresses:\n"
             out += unresolved.join(", ");
         }
-        return new Response(out.trim(), {resolved, unresolved});
+        return new Application.Response(out.trim(), {resolved, unresolved});
     }
 }
 
-module.exports = Email;
+}

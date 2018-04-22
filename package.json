@@ -1,0 +1,19 @@
+{
+    "name": "wcf",
+    "version": "0.1.0",
+    "description": "A minimalist web-based CLI framework",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/alnvdl/wcf.git"
+    },
+    "author": "Allan Vidal",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/alnvdl/wcf/issues"
+    },
+    "homepage": "https://github.com/alnvdl/wcf#readme"
+}

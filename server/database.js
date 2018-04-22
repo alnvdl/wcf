@@ -41,7 +41,7 @@ class Database {
         if (this._pendingTransactions == 0) {
             fs.writeFile(this.db_file, JSON.stringify(this.data), (err) => {
                 if (err) throw err;
-                console.log("Database persisted to disk");
+                // console.log("Database persisted to disk");
             });
         }
     }

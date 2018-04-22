@@ -129,6 +129,8 @@ class Application {
         }
     }
 }
+Application.Response = Response;
+Application.ErrorResponse = ErrorResponse;
 module.exports.Application = Application;
 
 class ApplicationRegistry {
