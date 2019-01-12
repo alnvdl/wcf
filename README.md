@@ -1,6 +1,7 @@
 # WebCLIFramework
 
-WebCLIFramework is a minimalist web-based CLI framework.
+WebCLIFramework is a minimalist framework for writing CLI-based web 
+applications.
 
 Do you sometimes want to build a very simple web application for a small team
 of people, but then give up just thinking about all the effort that will be
@@ -10,7 +11,7 @@ WebCLIFramework (WCF) is a minimalist framework for those cases. It allows you
 to build command line applications for browsers, without having to worry about
 user interfaces, database integration or dependency management.
 
-It provides you with:
+It provides you:
 - a simulated **terminal** with a command line interface for applications
 - a very easy-to-use **framework** for writing applications
 - a really stupid JSON-based **database**
@@ -68,11 +69,11 @@ isolated namespace. Commands are executed by handlers within applications. For
 example, the `sleep` application has one command registered, which allows the
 user to specify a number of seconds to wait.
 
-Every command always runs in the server, even the simplest ones. When commands
-are executed, they may choose to keep data on the server side (**database
-data**) or on the client side (**client data**). Client data is typically used
-to store  temporary state and non-important data. Database data is typically
-used to store more important data, and also for sharing data between clients.
+All commands run in the server, even the simplest ones. When commands are 
+executed, they may choose to keep data on the server side (**database data**) 
+or on the client side (**client data**). Client data is typically used to store 
+temporary state and non-important data. Database data is typically used to 
+store more important data, and also for sharing data between clients.
 
 Whenever client data is set (via a command's response), it is always sent back
 to the server with every command you run, for every application. However, an
